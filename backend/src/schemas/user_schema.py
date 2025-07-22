@@ -9,3 +9,6 @@ class RegisterSchema(BaseModel):
 class LoginSchema(BaseModel):
     email: EmailStr = Field(..., description="Email address of the user")
     password: str = Field(..., min_length=8, description="Password for the user account")
+
+class RefreshTokenSchema(BaseModel):
+    refresh_token: str = Field(..., description="Refresh token for the user session")
