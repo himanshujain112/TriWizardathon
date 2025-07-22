@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from src.db.db import get_db
 from src.models.user import User
-from src.schemas.user_schema import RegisterSchema, LoginSchema
+from src.schemas.user_schema import RegisterSchema, LoginSchema, RefreshTokenSchema
 from src.utils.hash import hash_password, verify_password
-from src.utils.jwt_util import create_access_token
+from src.utils.jwt_util import create_access_token, decode_access_token
 from src.core.dependencies import get_current_user
 from sqlalchemy.orm import Session
 
@@ -47,7 +47,20 @@ async def login(user_data: LoginSchema, db: Session=Depends(get_db)):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+@router.post('/refresh')
+async def refresh_token(body: RefreshTokenSchema , db: Session = Depends(get_db)):
+    try:
+        payload = decode_access_token(body.refresh_token)
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+        # Create new access token
+        access_token = create_access_token(data={"user_id": user_id})
+        return {"access_token": access_token, "token_type": "bearer"}
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
 @router.get('/me')
 async def profile(current_user : User = Depends(get_current_user), db: Session = Depends(get_db)):
     try:
