@@ -7,7 +7,9 @@ from src.agents.syllabus_analyzer import extract_syllabus_with_llm
 from src.agents.ques_paper_analyzer import predict_next_paper_structure
 
 # import time
-# import json
+# import 
+from src.core.dependencies import get_current_user
+from src.models.user import User
 import os
 
 router = APIRouter(prefix='/ai', tags=['exam-paper'])
@@ -19,7 +21,7 @@ os.makedirs(OUTPUTS_DIR, exist_ok=True)
 
 
 @router.post("/predict-question-paper", response_class=PlainTextResponse)
-async def predict_question_paper(file: UploadFile = File(...)):
+async def predict_question_paper(current_user : User = Depends(get_current_user), file: UploadFile = File(...)):
     # 1. Save uploaded PDF
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed.")
